@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:assorted_layout_widgets/assorted_layout_widgets.dart';
+import 'package:delayed_display/delayed_display.dart';
 
 class SplashScreen extends StatelessWidget {
   @override
@@ -18,26 +19,26 @@ class SplashScreen extends StatelessWidget {
                       RowSuper(
                         innerDistance: -size.width * 0.3,
                         children: [
-                          ColorElements(
+                          DelayedColorElement(
                             suffix: 'orange',
-                            milliseconds: 300,
+                            delay: 600,
                           ),
-                          ColorElements(
+                          DelayedColorElement(
                             suffix: 'red',
-                            milliseconds: 100,
+                            delay: 1200,
                           ),
                         ],
                       ),
                       RowSuper(
                         innerDistance: -size.width * 0.4,
                         children: [
-                          ColorElements(
+                          DelayedColorElement(
                             suffix: 'blue',
-                            milliseconds: 150,
+                            delay: 0,
                           ),
-                          ColorElements(
+                          DelayedColorElement(
                             suffix: 'purple',
-                            milliseconds: 200,
+                            delay: 900,
                           ),
                         ],
                       ),
@@ -60,12 +61,32 @@ class SplashScreen extends StatelessWidget {
   }
 }
 
+class DelayedColorElement extends StatelessWidget {
+  final int delay;
+  final String suffix;
+  const DelayedColorElement({
+    this.delay,
+    this.suffix,
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return DelayedDisplay(
+      fadingDuration: Duration(microseconds: 0),
+      slidingBeginOffset: Offset(0.0, 0.0),
+      delay: Duration(milliseconds: delay),
+      child: ColorElements(
+        suffix: suffix,
+      ),
+    );
+  }
+}
+
 class ColorElements extends StatefulWidget {
-  final int milliseconds;
   final String suffix;
 
   const ColorElements({
-    this.milliseconds,
     this.suffix,
     Key key,
   }) : super(key: key);
@@ -83,11 +104,13 @@ class _ColorElementsState extends State<ColorElements>
     super.initState();
 
     _controller = AnimationController(
-      duration: Duration(milliseconds: 1000),
+      duration: Duration(milliseconds: 250),
       vsync: this,
     );
 
-    _controller.forward();
+    _controller.forward().whenComplete(() {
+      print('done');
+    });
 
     _heightAnimation = Tween<double>(
       begin: 0,
@@ -103,6 +126,7 @@ class _ColorElementsState extends State<ColorElements>
 
   @override
   Widget build(BuildContext context) {
+    Future<void>.delayed(Duration(milliseconds: 300));
     return AnimatedBuilder(
         animation: _controller,
         builder: (ctx, _) {
@@ -110,7 +134,6 @@ class _ColorElementsState extends State<ColorElements>
             height: _heightAnimation.value,
             child: Image.asset(
               'assets/images/${widget.suffix}.png',
-              scale: 2,
             ),
           );
         });
